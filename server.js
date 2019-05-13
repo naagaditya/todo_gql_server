@@ -43,15 +43,7 @@ var rootValue = {
     return getAllTasks().then(res => res);
   },
   task: args => {
-    return getTaskById(args.id).then(res => {
-      return {
-        id: res[0].id,
-        title: res[0].title,
-        status: res[0].status,
-        priority: res[0].priority,
-        description: res[0].description
-      }
-    })
+    return getTaskById(args.id).then(res => res[0]);
   },
   tasksByStatus: args => {
     return getTaskByStatus(args.status).then(res => res)
