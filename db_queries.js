@@ -16,9 +16,9 @@ const getTaskById = (id) => {
   });
 }
 
-const insertTask = (title, desc) => {
+const insertTask = (title, description) => {
   return new Promise((resolve, reject) => {
-    connection.query(`insert into tasks (title, description) values ('${ title }', '${ desc }')`, (err, row, fields) => {
+    connection.query(`insert into tasks (title, description) values ('${title}', '${description }')`, (err, row, fields) => {
       if (err) reject(new Error(err));
       getTaskById(row.insertId).then(res => {
         resolve(res);
@@ -38,5 +38,26 @@ const getAllTasks = () => {
   });
 }
 
+const getTaskByStatus = (status) => {
+  return new Promise((resolve, reject) => {
+    connection.query(`select * from tasks where status = ${status}`, (err, row, fields) => {
+      if (err) reject(new Error(err));
+      resolve(row);
+    })
+  });
+}
+
+const updateStatus = (id, newStatus) => {
+  return new Promise((resolve, reject) => {
+    connection.query(`UPDATE tasks SET status = ${newStatus} WHERE id = ${id}`, (err, row, fields) => {
+      if (err) reject(new Error(err));
+      resolve(row);
+    })
+  });
+}
 
 exports.insertTask = insertTask;
+exports.getTaskById = getTaskById;
+exports.getAllTasks = getAllTasks;
+exports.getTaskByStatus = getTaskByStatus;
+exports.updateStatus = updateStatus;

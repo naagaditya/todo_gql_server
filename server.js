@@ -1,12 +1,19 @@
 var express = require('express');
 var express_graphql = require('express-graphql');
 var {buildSchema} = require('graphql');
-var { insertTask} = require('./db_queries');
+var cors = require('cors')
+var { insertTask,
+    getTaskById,
+    getAllTasks,
+    getTaskByStatus,
+    updateStatus} = require('./db_queries');
 var schema = buildSchema(`
   type Query {
     message: String,
     cat: Cat,
-    tasks: [Task]
+    tasks: [Task],
+    tasksByStatus(status: Int): [Task],
+    task(id: String): Task
   }
   type Cat {
     name: String
@@ -15,14 +22,15 @@ var schema = buildSchema(`
     id: ID,
     status: Int,
     title: String,
-    desc: String
+    description: String
   }
   input TaskInput {
     title: String,
-    desc: String
+    description: String
   }
   type Mutation {
-    addTask(title: String, desc: String): Task
+    addTask(title: String, description: String): Task,
+    updateStatus(id: ID, status: Int): Task
   }
 `);
 
@@ -32,23 +40,32 @@ var rootValue = {
     return {name: 'stat'}
   },
   tasks: () => {
-    return [{id: 1, status: 2}];
+    return getAllTasks().then(res => res);
   },
-  addTask: args => {
-    return row = insertTask(args.title, args.desc).then(res => {
-      return data =  {
+  task: args => {
+    return getTaskById(args.id).then(res => {
+      return {
         id: res[0].id,
         title: res[0].title,
         status: res[0].status,
         priority: res[0].priority,
-        desc: res[0].description
-      };
-    });
+        description: res[0].description
+      }
+    })
+  },
+  tasksByStatus: args => {
+    return getTaskByStatus(args.status).then(res => res)
+  },
+  addTask: args => {
+    return insertTask(args.title, args.description).then(res => res[0]);
+  },
+  updateStatus: args => {
+    return updateStatus(args.id, args.status).then(res => ({id: args.id}));
   }
 };
 
 var app = express();
-
+app.use(cors());
 app.use('/graphql', express_graphql({
   schema,
   rootValue,
